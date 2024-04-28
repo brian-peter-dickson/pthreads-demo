@@ -103,19 +103,18 @@ int main(int argc, char *argv[])
 
   /* FIXME
    *
-   * Change t1/2/3 to array references
-   * Use array of structs instead of atomic types for thread-specific *arg data
-   * (one array element per called routine, ie pass reference to array member == struct)
-   * (also might not be strictly necessary, depends on routines themselves?)
-   * Use array(s) of states for each major flavor
-   * Control thread cond_wait via struct member for each thread
-   * Use #define things for INT values -> strings (in arrays)
+   * [DONE] Change t1/2/3 to array references
+   * [DONE] Use array of structs instead of atomic types for thread-specific *arg data
+   * 	    (one array element per called routine, ie pass reference to array member == struct)
+   * Use set(s) of states for each major flavor - #define (current) or maybe 'enum'?
+   * Control thread cond_wait via struct member for each thread (or collectively?)
+   * Use #define things for INT values, become index -> strings (implicitly as array elements)
    */
 
 
   /* printf("arg_thing[0] = '%ld' (label = '%s')\n",arg_thing[0].id,arg_thing[0].label); */
 
-  long t1=1, t2=2, t3=3;
+  /* WAS long t1=1, t2=2, t3=3; */
   pthread_t threads[NUM_THREADS];
   pthread_attr_t attr;
 
@@ -159,6 +158,8 @@ int main(int argc, char *argv[])
     goto cleanup;
     }
 
+  /* Move this into a routine to be called repeatedly, with some flow control perhaps */
+
   /* read file contents */
   /* but do nothing with them (yet) */
   while(!feof(infile)){
@@ -185,10 +186,12 @@ int main(int argc, char *argv[])
 	}
       }
     }
+  /* End of thing to move */
 
   /* Add in threads for passing off main input to queue runners */
   /* (threads and splitting file to them for ignoring them by type) */
   /* After that, add standard queue handler threads without special logic */
+  /* Got about to here */
   /* After that, add lend/borrow thread exchanges between queues */
   /* (No thread create/destroy, rather use locked/unlocked states and secondary pools) */
   /* (E.g. each queue has some spare threads, which can be activated by the queue runner) */
@@ -199,11 +202,6 @@ int main(int argc, char *argv[])
   pthread_create(&threads[0], &attr, queue_mgr_global, (void *)&arg_thing[0]);
   pthread_create(&threads[0], &attr, queue_mgr_udp, (void *)&arg_thing[1]);
   pthread_create(&threads[1], &attr, queue_mgr_tcp, (void *)&arg_thing[2]);
-
-  /* OLD
-  (reference only)
-  pthread_create(&threads[2], &attr, foo2, (void *)t3);
-  */
 
   /* Safe for unused thread values, probably */
   for (i = 0; i < NUM_THREADS; i++) {
