@@ -91,6 +91,10 @@ int main(int argc, char *argv[])
    * Use #define things for INT values -> strings (in arrays)
    */
 
+  struct { long id; } arg_thing[3] = { { 1 }, { 2 }, { 3 } };
+
+  printf("arg_thing[1] = '%ld'\n",arg_thing[1].id);
+
   long t1=1, t2=2, t3=3;
   pthread_t threads[NUM_THREADS];
   pthread_attr_t attr;
