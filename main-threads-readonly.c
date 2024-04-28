@@ -61,6 +61,17 @@ char *secondary_state[] = {"Unused","In Use"};
 
 #define NUM_THREADS 10
 
+#define QUEUE_SIZE 1000
+
+struct queue_struct {
+  long head, tail;
+  void *slot[QUEUE_SIZE];
+  };
+
+struct queue_struct global_queue = { 0, 0, };
+struct queue_struct tcp_queue = { 0, 0, };
+struct queue_struct udp_queue = { 0, 0, };
+
 struct arg_struct {
   long id;
   long state;
