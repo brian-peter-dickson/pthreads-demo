@@ -9,18 +9,43 @@
 
 int     count = 0;
 
-/* Queue mutex used on heads of queue only (global, tcp, udp) */
-/* Might not be necessary (global or specifics or both)? Think about it */
-pthread_mutex_t global_queue_head, tcp_queue_head, udp_queue_head;
+/*
+ * Queue mutex used on head/tail of each queue
+ * (global, tcp, udp)
+ */
+pthread_mutex_t
+  global_queue_head,
+  tcp_queue_head,
+  udp_queue_head,
+  global_queue_tail,
+  tcp_queue_tail,
+  udp_queue_tail;
 
-/* Primary thread pools, standard condition signaling (no lending being used) */
-pthread_cond_t global_queue_head_cv, tcp_queue_head_cv, udp_queue_head_cv;
+/*
+ * Primary thread pools 
+ * standard condition signaling
+ * (no lending being used)
+ */
+pthread_cond_t
+  global_queue_head_cv,
+  tcp_queue_head_cv,
+  udp_queue_head_cv;
 
-/* Primary thread pools, condition signaling only if lending thread capacity actively being used */
-pthread_cond_t tcp_pool_onloan_cv, udp_pool_onloan_cv;
+/*
+ * Primary thread pools
+ * condition signaling only if lending thread capacity actively being used
+ */
+pthread_cond_t
+  tcp_pool_onloan_cv,
+  udp_pool_onloan_cv;
 
-/* Secondary thread pools, condition signaling only if borrowing thread capacity actively being used */
-pthread_cond_t tcp_standby_inuse_cv, udp_standby_inuse_cv;
+/*
+ * Secondary thread pools
+ * condition signaling only if borrowing thread capacity actively being used
+ */
+pthread_cond_t
+  tcp_standby_inuse_cv,
+  udp_standby_inuse_cv;
 
 #define GLOBAL_NORMAL 0
 
@@ -29,7 +54,6 @@ pthread_cond_t tcp_standby_inuse_cv, udp_standby_inuse_cv;
 
 char *primary_state[] = {"Normal","On Loan"};
 
-/* Does it matter which is 0 vs 1? */
 #define SECONDARY_NORMAL 0
 #define SECONDARY_INUSE 1
 
@@ -101,7 +125,8 @@ int main(int argc, char *argv[])
   int size=1024;
   char *buf,*ptr;
 
-  /* FIXME
+  /*
+   * FIXME
    *
    * [DONE] Change t1/2/3 to array references
    * [DONE] Use array of structs instead of atomic types for thread-specific *arg data
@@ -114,7 +139,6 @@ int main(int argc, char *argv[])
 
   /* printf("arg_thing[0] = '%ld' (label = '%s')\n",arg_thing[0].id,arg_thing[0].label); */
 
-  /* WAS long t1=1, t2=2, t3=3; */
   pthread_t threads[NUM_THREADS];
   pthread_attr_t attr;
 
@@ -122,6 +146,9 @@ int main(int argc, char *argv[])
   pthread_mutex_init(&global_queue_head, NULL);
   pthread_mutex_init(&tcp_queue_head, NULL);
   pthread_mutex_init(&udp_queue_head, NULL);
+  pthread_mutex_init(&global_queue_tail, NULL);
+  pthread_mutex_init(&tcp_queue_tail, NULL);
+  pthread_mutex_init(&udp_queue_tail, NULL);
   /* Initialize condition objects */
   pthread_cond_init(&global_queue_head_cv, NULL);
   pthread_cond_init(&tcp_queue_head_cv, NULL);
