@@ -21,6 +21,17 @@ pthread_cond_t tcp_pool_onloan_cv, udp_pool_onloan_cv;
 /* Secondary thread pools, condition signaling only if borrowing thread capacity actively being used */
 pthread_cond_t tcp_standby_inuse_cv, udp_standby_inuse_cv;
 
+#define PRIMARY_NORMAL 0
+#define PRIMARY_ONLOAN 1
+
+char *primary_state[] = ["Normal","On Loan"];
+
+/* Does it matter which is 0 vs 1? */
+#define SECONDARY_NORMAL 0
+#define SECONDARY_INUSE 1
+
+char *secondary_state[] = ["Unused","In Use"];
+
 #define NUM_THREADS 10
 
 void *queue_mgr_global(void *t) 
