@@ -39,6 +39,7 @@ void *queue_mgr_global(void *t)
 {
   int i;
   long my_id = *(long *)t;
+  printf("queue_mgr_global received argument %ld via void * parameter deref.\n",my_id);
 
   pthread_exit(NULL);
 }
