@@ -109,9 +109,9 @@ int main(int argc, char *argv[])
 
   /* No threads yet... commented out the following as placeholders */
   /*
-  pthread_create(&threads[0], &attr, watch_count, (void *)t1);
-  pthread_create(&threads[1], &attr, inc_count, (void *)t2);
-  pthread_create(&threads[2], &attr, inc_count, (void *)t3);
+  pthread_create(&threads[0], &attr, foo1, (void *)t1);
+  pthread_create(&threads[1], &attr, foo2, (void *)t2);
+  pthread_create(&threads[2], &attr, foo2, (void *)t3);
 
   for (i = 0; i < NUM_THREADS; i++) {
     pthread_join(threads[i], NULL);
