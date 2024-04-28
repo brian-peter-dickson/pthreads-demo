@@ -22,6 +22,8 @@ pthread_cond_t tcp_pool_onloan_cv, udp_pool_onloan_cv;
 /* Secondary thread pools, condition signaling only if borrowing thread capacity actively being used */
 pthread_cond_t tcp_standby_inuse_cv, udp_standby_inuse_cv;
 
+#define GLOBAL_NORMAL 0
+
 #define PRIMARY_NORMAL 0
 #define PRIMARY_ONLOAN 1
 
@@ -35,11 +37,25 @@ char *secondary_state[] = {"Unused","In Use"};
 
 #define NUM_THREADS 10
 
+struct arg_struct {
+  long id;
+  long state;
+  char *label;
+  };
+
+struct arg_struct arg_thing[] = {
+  { 0, GLOBAL_NORMAL, "global queue", },
+  { 1, PRIMARY_NORMAL, "tcp queue", },
+  { 2, PRIMARY_NORMAL, "udp queue", },
+};
+
 void *queue_mgr_global(void *t) 
 {
   int i;
-  long my_id = *(long *)t;
-  printf("queue_mgr_global received argument %ld via void * parameter deref.\n",my_id);
+  struct arg_struct x;
+  x = *(struct arg_struct *)t;
+  long my_id = x.id;
+  /* printf("arg_thing[0] = '%ld'\n",my_id); */
 
   pthread_exit(NULL);
 }
@@ -47,7 +63,9 @@ void *queue_mgr_global(void *t)
 void *queue_mgr_udp(void *t) 
 {
   int i;
-  long my_id = *(long *)t;
+  struct arg_struct x;
+  x = *(struct arg_struct *)t;
+  long my_id = x.id;
 
   pthread_exit(NULL);
 }
@@ -55,7 +73,9 @@ void *queue_mgr_udp(void *t)
 void *queue_mgr_tcp(void *t) 
 {
   int i;
-  long my_id = *(long *)t;
+  struct arg_struct x;
+  x = *(struct arg_struct *)t;
+  long my_id = x.id;
 
   pthread_exit(NULL);
 }
@@ -72,6 +92,7 @@ void *foo2(void *t)
   pthread_exit(NULL);
 }
 */
+
 
 int main(int argc, char *argv[])
 {
@@ -91,9 +112,8 @@ int main(int argc, char *argv[])
    * Use #define things for INT values -> strings (in arrays)
    */
 
-  struct { long id; } arg_thing[3] = { { 1 }, { 2 }, { 3 } };
 
-  printf("arg_thing[1] = '%ld'\n",arg_thing[1].id);
+  /* printf("arg_thing[0] = '%ld' (label = '%s')\n",arg_thing[0].id,arg_thing[0].label); */
 
   long t1=1, t2=2, t3=3;
   pthread_t threads[NUM_THREADS];
@@ -175,9 +195,10 @@ int main(int argc, char *argv[])
   /* (Activating a spare requires setting lock/block on thread from another queue's main pool.) */
   /* (Spare threads must signal queue runner to confirm other queue doesn't need threads yet.) */
 
-  pthread_create(&threads[0], &attr, queue_mgr_global, (void *)&t1);
-  pthread_create(&threads[0], &attr, queue_mgr_udp, (void *)&t2);
-  pthread_create(&threads[1], &attr, queue_mgr_tcp, (void *)&t3);
+  /* Group these in loops when we are doing a bunch of them... */
+  pthread_create(&threads[0], &attr, queue_mgr_global, (void *)&arg_thing[0]);
+  pthread_create(&threads[0], &attr, queue_mgr_udp, (void *)&arg_thing[1]);
+  pthread_create(&threads[1], &attr, queue_mgr_tcp, (void *)&arg_thing[2]);
 
   /* OLD
   (reference only)
