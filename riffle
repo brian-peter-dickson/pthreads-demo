@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+#
+# riffle
+#
+# take a list of files
+#
+# output their combined contents, preserving the relative orderings but randomizing file source for each line of output
+#
+# handle boundary conditions (i.e. eof() of each file, weighted randomization, etc.)
+
+# current assumption: linear count-off is acceptable, for small number of files. Break point would be 6 or fewer files regardless of file lengths.
+
+# FIXME:
+# What to use for file handless? Array of FH (if necessary, but it isn't)
+# What to use for file contents? Array of arrays
+# What to use for file lengths? Array of remaining lines per file (counting from 1, not zero)
+# Keep total sum of lengths and decrement, rather than always adding up those lengths.
+
+use strict;
+use warnings;
+use Getopt::Std;
+
+our($opt_d);
+getopts("d");
+
+my @fl;
+my @fc;
+my $total;
+
+for(my $i=0;$i<=$#ARGV;$i++){
+  # Might not even need all these FH, if we open/read/close each
+  open(NF,"<$ARGV[$i]");
+  $fc[$i]=0;
+  while(<NF>){
+    chomp;
+    # ignore actual line structures, let whatever consumes the merged data deal with that.
+    push(@{$fl[$i]},$_);
+    $fc[$i]++;
+  }
+  close(NF);
+  $total += $fc[$i];
+  }
+
+while($total>=1){
+  # figure out weighted random for which array(file) to read next line from
+  my $next = int(rand($total))+1; # ranges from 1 to $total
+  my $onext = $next;
+  my $nf=0;
+  # each non-empty file has $fc[$nf] >= 1 while empty files have fc == 0
+  while($next > $fc[$nf]){
+    $next -= $fc[$nf];
+    $nf++;
+    }
+  my $line = shift(@{$fl[$nf]});
+  if(defined($opt_d)){
+    printf "%d/%d:%d:%d:",$onext,$total,$nf,$fc[$nf];
+    }
+  printf "%s\n",$line;
+  $fc[$nf]--;
+  $total--;
+  }
