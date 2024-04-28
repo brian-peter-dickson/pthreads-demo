@@ -24,13 +24,13 @@ pthread_cond_t tcp_standby_inuse_cv, udp_standby_inuse_cv;
 #define PRIMARY_NORMAL 0
 #define PRIMARY_ONLOAN 1
 
-char *primary_state[] = ["Normal","On Loan"];
+char *primary_state[] = {"Normal","On Loan"};
 
 /* Does it matter which is 0 vs 1? */
 #define SECONDARY_NORMAL 0
 #define SECONDARY_INUSE 1
 
-char *secondary_state[] = ["Unused","In Use"];
+char *secondary_state[] = {"Unused","In Use"};
 
 #define NUM_THREADS 10
 
