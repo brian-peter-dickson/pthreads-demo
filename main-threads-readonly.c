@@ -1,5 +1,5 @@
 /******************************************************************************
-* main-only.c
+* main-threads-readonly.c
 ******************************************************************************/
 #include <pthread.h>
 #include <stdio.h>
@@ -10,6 +10,7 @@
 int     count = 0;
 
 /* Queue mutex used on heads of queue only (global, tcp, udp) */
+/* Might not be necessary (global or specifics or both)? Think about it */
 pthread_mutex_t global_queue_head, tcp_queue_head, udp_queue_head;
 
 /* Primary thread pools, standard condition signaling (no lending being used) */
@@ -37,7 +38,7 @@ char *secondary_state[] = {"Unused","In Use"};
 void *queue_mgr_global(void *t) 
 {
   int i;
-  long my_id = (long)t;
+  long my_id = *(long *)t;
 
   pthread_exit(NULL);
 }
@@ -45,7 +46,7 @@ void *queue_mgr_global(void *t)
 void *queue_mgr_udp(void *t) 
 {
   int i;
-  long my_id = (long)t;
+  long my_id = *(long *)t;
 
   pthread_exit(NULL);
 }
@@ -53,7 +54,7 @@ void *queue_mgr_udp(void *t)
 void *queue_mgr_tcp(void *t) 
 {
   int i;
-  long my_id = (long)t;
+  long my_id = *(long *)t;
 
   pthread_exit(NULL);
 }
@@ -62,7 +63,7 @@ void *queue_mgr_tcp(void *t)
 /*
 void *foo2(void *t) 
 {
-  long my_id = (long)t;
+  long my_id = *(long *)t;
 
   pthread_mutex_lock(&count_mutex);
   pthread_cond_wait(&count_threshold_cv, &count_mutex);
@@ -81,7 +82,9 @@ int main(int argc, char *argv[])
   /* FIXME
    *
    * Change t1/2/3 to array references
-   * Use array of structs instead of atomic types
+   * Use array of structs instead of atomic types for thread-specific *arg data
+   * (one array element per called routine, ie pass reference to array member == struct)
+   * (also might not be strictly necessary, depends on routines themselves?)
    * Use array(s) of states for each major flavor
    * Control thread cond_wait via struct member for each thread
    * Use #define things for INT values -> strings (in arrays)
@@ -167,9 +170,9 @@ int main(int argc, char *argv[])
   /* (Activating a spare requires setting lock/block on thread from another queue's main pool.) */
   /* (Spare threads must signal queue runner to confirm other queue doesn't need threads yet.) */
 
-  pthread_create(&threads[0], &attr, queue_mgr_global, (void *)t1);
-  pthread_create(&threads[0], &attr, queue_mgr_udp, (void *)t2);
-  pthread_create(&threads[1], &attr, queue_mgr_tcp, (void *)t3);
+  pthread_create(&threads[0], &attr, queue_mgr_global, (void *)&t1);
+  pthread_create(&threads[0], &attr, queue_mgr_udp, (void *)&t2);
+  pthread_create(&threads[1], &attr, queue_mgr_tcp, (void *)&t3);
 
   /* OLD
   (reference only)
